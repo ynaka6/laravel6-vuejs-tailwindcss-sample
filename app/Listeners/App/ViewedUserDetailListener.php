@@ -1,0 +1,46 @@
+<?php
+
+namespace App\Listeners\App;
+
+use App\Events\App\ViewedUserDetail as ViewedUserDetailEvent;
+use App\UseCases\App\CreateUserActivityUseCase;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
+
+class ViewedUserDetailListener implements ShouldQueue
+{
+
+    private $usecase;
+
+    /**
+     * Create the event listener.
+     *
+     * @return void
+     */
+    public function __construct(CreateUserActivityUseCase $usecase)
+    {
+        $this->usecase = $usecase;
+    }
+
+    /**
+     * Handle the event.
+     *
+     * @param  App\Events\App\ViewedUserDetail $event
+     * @return void
+     */
+    public function handle(ViewedUserDetailEvent $event)
+    {
+        $message = $event->isSameUser()
+            ? __('messages.user.activity.viewed_my_user_detail')
+            : __('messages.user.activity.viewed_user_detail', [
+                'company' => $event->target()->mainEmployee->company->name,
+                'name' => $event->target()->profile->name
+            ]);
+
+        $this->usecase->handle([
+            'user_id' => $event->user()->id,
+            'message' => $message,
+            'path'    => $event->path()
+        ]);
+    }
+}

@@ -1,0 +1,37 @@
+name: Format (prettier)
+
+on:
+    pull_request:
+        paths:
+            - '**.css'
+            - '**.js'
+            - '**.vue'
+
+jobs:
+    prettier:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v1
+    
+            - name: Yarn Install - App
+              run: yarn install:app
+              env:
+                  CI: true
+    
+            - name: Yarn Install - Admin
+              run: yarn install:admin
+              env:
+                  CI: true
+
+            - name: Run Lint - App
+              run: yarn lint:app
+
+            - name: Run Lint - Admin
+              run: yarn lint:admin
+
+            - uses: stefanzweifel/git-auto-commit-action@v2.1.0
+              with:
+                  commit_message: Apply prettier changes
+                  branch: ${{ github.head_ref }}
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
